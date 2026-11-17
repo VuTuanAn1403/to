@@ -1,0 +1,157 @@
+package com.example.helloproject;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+
+public class DanhSachActivity extends Activity {
+
+    private ArrayList<Bundle> danhSach;
+    private ArrayAdapter<Bundle> adapter;
+    private ListView lvPhieu;
+    private int viTriChon = -1;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_danh_sach);
+        setActionBar(findViewById(R.id.toolbar));
+
+        Bundle duLieu = getIntent().getExtras();
+        danhSach = duLieu.getParcelableArrayList("danhSach");
+        lvPhieu = findViewById(R.id.lvPhieu);
+
+        adapter = new ArrayAdapter<Bundle>(this, R.layout.dong_phieu, danhSach) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                if (convertView == null) {
+                    convertView = getLayoutInflater()
+                            .inflate(R.layout.dong_phieu, parent, false);
+                }
+
+                Bundle phieu = getItem(position);
+                TextView tvMaSach = convertView.findViewById(R.id.tvMaSach);
+                TextView tvNhaXB = convertView.findViewById(R.id.tvNhaXB);
+                TextView tvLoai = convertView.findViewById(R.id.tvLoai);
+                TextView tvChuDe = convertView.findViewById(R.id.tvChuDe);
+
+                String loai;
+                if (phieu.getBoolean("thamKhao") && phieu.getBoolean("sgk")) {
+                    loai = "Tham khảo, SGK";
+                } else if (phieu.getBoolean("thamKhao")) {
+                    loai = "Tham khảo";
+                } else {
+                    loai = "SGK";
+                }
+
+                tvMaSach.setText(phieu.getString("maSach"));
+                tvNhaXB.setText(phieu.getString("nhaXB"));
+                tvLoai.setText(loai);
+                tvChuDe.setText(phieu.getString("chuDe"));
+                return convertView;
+            }
+        };
+
+        lvPhieu.setAdapter(adapter);
+        lvPhieu.setOnItemClickListener((parent, view, position, id) -> {
+            viTriChon = position;
+        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, 1, 0, "Sửa");
+        menu.add(0, 2, 0, "Xoá");
+        menu.add(0, 3, 0, "Thống kê");
+        menu.add(0, 4, 0, "Thoát");
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case 1:
+                if (daChonDong()) {
+                    traKetQua(viTriChon);
+                    finish();
+                }
+                return true;
+            case 2:
+                if (daChonDong()) {
+                    lvPhieu.setItemChecked(viTriChon, false);
+                    danhSach.remove(viTriChon);
+                    viTriChon = -1;
+                    adapter.notifyDataSetChanged();
+                    traKetQua(-1);
+                }
+                return true;
+            case 3:
+                thongKe();
+                return true;
+            case 4:
+                xacNhanThoat();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private boolean daChonDong() {
+        if (viTriChon == -1) {
+            Toast.makeText(this, "Chọn một dòng trong danh sách",
+                    Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
+    }
+
+    private void traKetQua(int viTriSua) {
+        Bundle duLieu = new Bundle();
+        duLieu.putParcelableArrayList("danhSach", danhSach);
+        duLieu.putInt("viTriSua", viTriSua);
+
+        Intent ketQua = new Intent();
+        ketQua.putExtras(duLieu);
+        setResult(RESULT_OK, ketQua);
+    }
+
+    private void thongKe() {
+        int soThamKhao = 0;
+        int soSGK = 0;
+
+        for (Bundle phieu : danhSach) {
+            if (phieu.getBoolean("thamKhao")) {
+                soThamKhao++;
+            }
+            if (phieu.getBoolean("sgk")) {
+                soSGK++;
+            }
+        }
+
+        String noiDung = "Tham khảo: " + soThamKhao + "\nSGK: " + soSGK;
+
+        Intent sms = new Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:222"));
+        sms.putExtra("sms_body", noiDung);
+        startActivity(sms);
+    }
+
+    private void xacNhanThoat() {
+        new AlertDialog.Builder(this)
+                .setMessage("Bạn có muốn thoát không?")
+                .setPositiveButton("Đồng ý", (dialog, which) -> finish())
+                .setNegativeButton("Huỷ", null)
+                .show();
+    }
+}

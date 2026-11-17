@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true"
+    android:padding="16dp">
+
+    <Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:title="@string/app_name" />
+
+    <EditText
+        android:id="@+id/edtMaSach"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Mã sách"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/edtNhaXB"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nhà xuất bản"
+        android:inputType="text" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Loại sách" />
+
+    <CheckBox
+        android:id="@+id/chkThamKhao"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tham khảo" />
+
+    <CheckBox
+        android:id="@+id/chkSGK"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SGK" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Chủ đề" />
+
+    <RadioGroup
+        android:id="@+id/rgChuDe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/rbToan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Toán" />
+
+        <RadioButton
+            android:id="@+id/rbTiengViet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tiếng Việt" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/tvSoLan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Số lần đăng ký: 0" />
+
+</LinearLayout>

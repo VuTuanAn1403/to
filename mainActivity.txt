@@ -1,0 +1,162 @@
+package com.example.helloproject;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.RadioGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+
+public class MainActivity extends Activity {
+
+    private static final int YEU_CAU_DANH_SACH = 1;
+
+    private EditText edtMaSach, edtNhaXB;
+    private CheckBox chkThamKhao, chkSGK;
+    private RadioGroup rgChuDe;
+    private TextView tvSoLan;
+
+    private ArrayList<Bundle> danhSach = new ArrayList<>();
+    private int soLanDangKy = 0;
+    private int viTriSua = -1;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        setActionBar(findViewById(R.id.toolbar));
+
+        edtMaSach = findViewById(R.id.edtMaSach);
+        edtNhaXB = findViewById(R.id.edtNhaXB);
+        chkThamKhao = findViewById(R.id.chkThamKhao);
+        chkSGK = findViewById(R.id.chkSGK);
+        rgChuDe = findViewById(R.id.rgChuDe);
+        tvSoLan = findViewById(R.id.tvSoLan);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, 1, 0, "Xác nhận");
+        menu.add(0, 2, 0, "Xem danh sách");
+        menu.add(0, 3, 0, "Thoát");
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case 1:
+                xacNhan();
+                return true;
+            case 2:
+                Bundle duLieu = new Bundle();
+                duLieu.putParcelableArrayList("danhSach", danhSach);
+
+                Intent intent = new Intent(this, DanhSachActivity.class);
+                intent.putExtras(duLieu);
+                startActivityForResult(intent, YEU_CAU_DANH_SACH);
+                return true;
+            case 3:
+                xacNhanThoat();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void xacNhan() {
+        String maSach = edtMaSach.getText().toString().trim();
+        String nhaXB = edtNhaXB.getText().toString().trim();
+        boolean thamKhao = chkThamKhao.isChecked();
+        boolean sgk = chkSGK.isChecked();
+        int idChuDe = rgChuDe.getCheckedRadioButtonId();
+
+        if (maSach.isEmpty()) {
+            edtMaSach.setError("Nhập mã sách");
+            return;
+        }
+
+        if (nhaXB.isEmpty()) {
+            edtNhaXB.setError("Nhập nhà xuất bản");
+            return;
+        }
+
+        if (!thamKhao && !sgk) {
+            Toast.makeText(this, "Chọn ít nhất một loại sách",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (idChuDe == -1) {
+            Toast.makeText(this, "Chọn một chủ đề",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        for (int i = 0; i < danhSach.size(); i++) {
+            if (i != viTriSua && maSach.equals(danhSach.get(i).getString("maSach"))) {
+                edtMaSach.setError("Mã sách đã tồn tại");
+                return;
+            }
+        }
+
+        Bundle phieu = new Bundle();
+        phieu.putString("maSach", maSach);
+        phieu.putString("nhaXB", nhaXB);
+        phieu.putBoolean("thamKhao", thamKhao);
+        phieu.putBoolean("sgk", sgk);
+        phieu.putString("chuDe", idChuDe == R.id.rbToan ? "Toán" : "Tiếng Việt");
+
+        if (viTriSua == -1) {
+            danhSach.add(phieu);
+            soLanDangKy++;
+            tvSoLan.setText("Số lần đăng ký: " + soLanDangKy);
+        } else {
+            danhSach.set(viTriSua, phieu);
+        }
+
+        viTriSua = -1;
+        edtMaSach.setText("");
+        edtNhaXB.setText("");
+        chkThamKhao.setChecked(false);
+        chkSGK.setChecked(false);
+        rgChuDe.clearCheck();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode != YEU_CAU_DANH_SACH || resultCode != RESULT_OK || data == null) {
+            return;
+        }
+
+        danhSach = data.getParcelableArrayListExtra("danhSach");
+        viTriSua = data.getIntExtra("viTriSua", -1);
+
+        if (viTriSua != -1) {
+            Bundle phieu = danhSach.get(viTriSua);
+            edtMaSach.setText(phieu.getString("maSach"));
+            edtNhaXB.setText(phieu.getString("nhaXB"));
+            chkThamKhao.setChecked(phieu.getBoolean("thamKhao"));
+            chkSGK.setChecked(phieu.getBoolean("sgk"));
+            rgChuDe.check("Toán".equals(phieu.getString("chuDe"))
+                    ? R.id.rbToan : R.id.rbTiengViet);
+        }
+    }
+
+    private void xacNhanThoat() {
+        new AlertDialog.Builder(this)
+                .setMessage("Bạn có muốn thoát không?")
+                .setPositiveButton("Đồng ý", (dialog, which) -> finish())
+                .setNegativeButton("Huỷ", null)
+                .show();
+    }
+}
